@@ -23,8 +23,10 @@
 // Qt includes
 #include <QFile>
 
-#define DOOR_OPEN_IO "/sys/class/gpio/gpio41/value"
-#define DOOR_RING_IO "/sys/class/gpio/gpio39/value"
+#define DOOR_OPEN_IO "/sys/class/gpio/gpio37/value"
+#define DOOR_RING_IO "/sys/class/gpio/gpio38/value"
+
+#define GPIO_EXPORT "/sys/class/gpio/export"
 
 DoorDriver& DoorDriver::instance() {
     static DoorDriver doorService;
@@ -33,6 +35,10 @@ DoorDriver& DoorDriver::instance() {
 
 DoorDriver::DoorDriver(QObject *parent) :
     QObject(parent) {
+
+    if(system(QString("echo 37 > %1").arg(GPIO_EXPORT).toStdString().c_str()) != 0) {}
+    if(system(QString("echo 38 > %1").arg(GPIO_EXPORT).toStdString().c_str()) != 0) {}
+
     _openDoorHoldTimer = new QTimer(this);
     _openDoorHoldTimer->setSingleShot(true);
     connect(_openDoorHoldTimer, SIGNAL(timeout()),
