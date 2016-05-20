@@ -41,7 +41,7 @@ DoorDriver::DoorDriver(QObject *parent) :
 
     pinMode(GPIO_DOOR(37), OUTPUT);
     pinMode(GPIO_RING(38), INPUT);
-    pullUpDnControl(GPIO_RING, PUD_DOWN);
+    pullUpDnControl(GPIO_RING(38), PUD_DOWN);
 
     _openDoorHoldTimer = new QTimer(this);
     _openDoorHoldTimer->setSingleShot(true);
