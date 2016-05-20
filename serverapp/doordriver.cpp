@@ -20,15 +20,14 @@
 // Own includes
 #include "doordriver.h"
 
+// Wiring PI
+#include <wiringPi.h>
+
 // Qt includes
 #include <QFile>
 
-#define DOOR_OPEN_IO "/sys/class/gpio/gpio37/value"
-#define DOOR_DIRECTION_IO "/sys/class/gpio/gpio37/direction"
-#define DOOR_RING_IO "/sys/class/gpio/gpio38/value"
-
-#define GPIO_EXPORT "/sys/class/gpio/export"
-
+#define GPIO_DOOR 37
+#define GPIO_RING 38
 
 DoorDriver& DoorDriver::instance() {
     static DoorDriver doorService;
@@ -38,10 +37,10 @@ DoorDriver& DoorDriver::instance() {
 DoorDriver::DoorDriver(QObject *parent) :
     QObject(parent) {
 
-    if(system(QString("echo 37 > %1").arg(GPIO_EXPORT).toStdString().c_str()) != 0) {}
-    if(system(QString("echo 1 > %1").arg(DOOR_DIRECTION_IO).toStdString().c_str()) != 0) {}
+    wiringPiSetupGpio();
 
-    if(system(QString("echo 38 > %1").arg(GPIO_EXPORT).toStdString().c_str()) != 0) {}
+    pinMode(GPIO_DOOR, OUTPUT);
+    pinMode(GPIO_RING, INPUT);
 
     _openDoorHoldTimer = new QTimer(this);
     _openDoorHoldTimer->setSingleShot(true);
@@ -63,7 +62,10 @@ DoorDriver::~DoorDriver() {
 void DoorDriver::open(int holdDuration) {
     _doorSemaphore->acquire();
     if(!_openDoorHoldTimer->isActive()) {
-        if(system(QString("echo 1 > %1").arg(DOOR_OPEN_IO).toStdString().c_str()) == 0) {
+        digitalWrite(GPIO_DOOR, HIGH);
+        delay(500);
+
+        if(!digitalRead(GPIO_DOOR)) {
             emit opened();
             system("espeak \"Door is opening.\" -p 99");
             _openDoorHoldTimer->setInterval(holdDuration);
@@ -79,7 +81,10 @@ void DoorDriver::simulateRing() {
 
 void DoorDriver::close() {
     _doorSemaphore->acquire();
-    if(system(QString("echo 0 > %1").arg(DOOR_OPEN_IO).toStdString().c_str()) == 0) {
+    digitalWrite(GPIO_DOOR, LOW);
+    delay(500);
+
+    if(!digitalRead(GPIO_DOOR)) {
         emit closed();
         _openDoorHoldTimer->stop();
     }
@@ -87,18 +92,7 @@ void DoorDriver::close() {
 }
 
 void DoorDriver::ringPoll() {
-    QFile file(DOOR_RING_IO);
-
-    file.open(QFile::ReadOnly);
-    if(file.isOpen()) {
-        QByteArray contents = file.readAll();
-
-        // Pulldown
-        if(contents.contains("0")) {
-            emit ring();
-        }
-        file.close();
-    } else {
-        emit error("Ring polling failed: " + file.errorString());
+    if(!digitalRead(GPIO_RING)) {
+      emit ring();
     }
 }

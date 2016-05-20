@@ -26,6 +26,8 @@ TARGET = qdoorserver
 CONFIG += console
 CONFIG -= app_bundle
 
+QMAKE_LFLAGS += " -lwiringPi "
+
 SOURCES += \
     main.cpp \
     doordriver.cpp \
