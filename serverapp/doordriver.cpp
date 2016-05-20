@@ -64,9 +64,8 @@ void DoorDriver::open(int holdDuration) {
     _doorSemaphore->acquire();
     if(!_openDoorHoldTimer->isActive()) {
         digitalWrite(GPIO_DOOR(37), HIGH);
-        delay(500);
 
-        if(!digitalRead(GPIO_DOOR(37))) {
+        if(digitalRead(GPIO_DOOR(37))) {
             emit opened();
             system("espeak \"Door is opening.\" -p 99");
             _openDoorHoldTimer->setInterval(holdDuration);
@@ -83,7 +82,6 @@ void DoorDriver::simulateRing() {
 void DoorDriver::close() {
     _doorSemaphore->acquire();
     digitalWrite(GPIO_DOOR(37), LOW);
-    delay(500);
 
     if(!digitalRead(GPIO_DOOR(37))) {
         emit closed();
