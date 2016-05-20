@@ -26,8 +26,8 @@
 // Qt includes
 #include <QFile>
 
-#define GPIO_DOOR 37
-#define GPIO_RING 38
+#define GPIO_DOOR(wpiPinToGpio(37))
+#define GPIO_RING(wpiPinToGpio(38))
 
 DoorDriver& DoorDriver::instance() {
     static DoorDriver doorService;
@@ -41,6 +41,7 @@ DoorDriver::DoorDriver(QObject *parent) :
 
     pinMode(GPIO_DOOR, OUTPUT);
     pinMode(GPIO_RING, INPUT);
+    pullUpDnControl(GPIO_RING, PUD_DOWN);
 
     _openDoorHoldTimer = new QTimer(this);
     _openDoorHoldTimer->setSingleShot(true);
