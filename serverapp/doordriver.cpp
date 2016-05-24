@@ -39,8 +39,8 @@ DoorDriver::DoorDriver(QObject *parent) :
 
     wiringPiSetupGpio();
 
-    pinMode(GPIO_DOOR(37), OUTPUT);
-    pinMode(GPIO_RING(38), INPUT);
+    pinMode(GPIO_DOOR(25), OUTPUT);
+    pinMode(GPIO_RING(28), INPUT);
 
     _openDoorHoldTimer = new QTimer(this);
     _openDoorHoldTimer->setSingleShot(true);
@@ -62,7 +62,7 @@ DoorDriver::~DoorDriver() {
 void DoorDriver::open(int holdDuration) {
     _doorSemaphore->acquire();
     if(!_openDoorHoldTimer->isActive()) {
-        digitalWrite(GPIO_DOOR(37), HIGH);
+        digitalWrite(GPIO_DOOR(25), HIGH);
         emit opened();
         system("espeak \"Door is opening.\" -p 99");
         _openDoorHoldTimer->setInterval(holdDuration);
@@ -77,14 +77,14 @@ void DoorDriver::simulateRing() {
 
 void DoorDriver::close() {
     _doorSemaphore->acquire();
-    digitalWrite(GPIO_DOOR(37), LOW);
+    digitalWrite(GPIO_DOOR(25), LOW);
     emit closed();
     _openDoorHoldTimer->stop();
     _doorSemaphore->release();
 }
 
 void DoorDriver::ringPoll() {
-    if(!digitalRead(GPIO_RING(38))) {
+    if(!digitalRead(GPIO_RING(28))) {
       emit ring();
     }
 }
